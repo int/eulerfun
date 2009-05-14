@@ -1,0 +1,13 @@
+application: eulerfun
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+
+- url: /xadminx/.*
+  script: $PYTHON_LIB/google/appengine/ext/admin
+  login: admin
+
+- url: /.*
+  script: eulerfun.py
