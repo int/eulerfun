@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# generate code than can be run at App Engine
+# generate code that can be run at App Engine
 # (either via Admin Consonle interactively or directly from url)
 #
 # Usage:
