@@ -9,7 +9,11 @@ from google.appengine.ext import db
 class Problem(db.Model):
     pid = db.IntegerProperty()
     ans = db.StringProperty()
-    code = db.ListProperty(db.Text)
+
+class Code(db.Model):
+    name = db.StringProperty()
+    text = db.TextProperty()
+    problem = db.ReferenceProperty(Problem, collection_name='code')
 
 class MainPage(webapp.RequestHandler):
     def get(self):
@@ -40,8 +44,10 @@ class Show(webapp.RequestHandler):
             if hashlib.md5(ans).hexdigest() == problem.ans:
                 self.response.out.write('Congrats!\n\n')
                 for x in problem.code:
-                    self.response.out.write(x)
-                    self.response.out.write('\n\n')
+                    self.response.out.write('--------------%s--------------'%x.name)
+                    self.response.out.write(x.text)
+                    self.response.out.write('--------------%s--------------'%x.name)
+                    self.response.out.write('\n\n\n\n\n')
 
             else:
                 self.response.out.write('Wrong Answer')

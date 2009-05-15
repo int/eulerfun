@@ -18,6 +18,7 @@ import os
 import sys
 
 print r"""
+import time
 import hashlib
 
 from google.appengine.ext import db
@@ -25,7 +26,11 @@ from google.appengine.ext import db
 class Problem(db.Model):
     pid = db.IntegerProperty()
     ans = db.StringProperty()
-    code = db.ListProperty(db.Text)
+
+class Code(db.Model):
+    name = db.StringProperty()
+    text = db.TextProperty()
+    problem = db.ReferenceProperty(Problem, collection_name='code')
 """
 
 ans = {}
@@ -46,18 +51,18 @@ for p in probs:
     print 'if problem == None:'
     print '    problem = Problem(pid = %s)' % p
     print "problem.ans = hashlib.md5('%s').hexdigest()" % ans[p]
-    print 'code = []'
+    print 'problem.put()' # put for later reference
     for f in os.listdir('.'):
-        s = '-----------------' + f + '---------------------\n'
-        s += open(f).read()
-        s += '-----------------' + f + '---------------------\n'
+        print 'code = Code.gql("WHERE problem = :1 AND name = \'%s\'", problem).get()' % f
+        print 'if code == None:'
+        print '    code = Code(problem = problem, name = "%s")' % f
         # just a quick & dirty way to embed data to code
         # luckily, my euler python solutions dont contain """
         # use ''' instead
         print 't = ur"""'
-        print s
+        print open(f).read()
         print '"""'
-        print 'code.append(db.Text(t))'
-    print 'problem.code = code'
-    print 'problem.put()'
+        print 'code.text = db.Text(t)'
+        print 'code.put()'
+    #print 'time.sleep(10)' # cpu quota
     os.chdir('..')
