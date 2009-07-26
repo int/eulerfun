@@ -21,7 +21,7 @@ class MainPage(webapp.RequestHandler):
       <html>
         <body>
           <p>my <a href="http://projecteuler.net">Project Euler</a> solutions: </p>
-          <form action="/show" method="post">
+          <form method="post">
             <div> problem id: <input type="text" name="pid" size=4 maxlength=3></div>
             <div> answer: <input type="text" name="ans" size=20 maxlength=30></div>
             <div><input type="submit" value="I'm Feeling Lucky"></div>
@@ -29,19 +29,21 @@ class MainPage(webapp.RequestHandler):
         </body>
       </html>""")
 
+    def post(self):
+        self.redirect('/show/' + cgi.escape(self.request.get('pid')) + '/' + hashlib.md5(cgi.escape(self.request.get('ans'))).hexdigest())
 
 class Show(webapp.RequestHandler):
-    def post(self):
-        pid = int(cgi.escape(self.request.get('pid')))
-        problem = Problem.gql("WHERE pid = :1", pid).get()
+    def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
+        pid, ans = self.request.path.split('/')[2:]
+        pid = int(pid)
+        problem = Problem.gql("WHERE pid = :1", pid).get()
         if problem == None:
             self.response.out.write('Problem ')
             self.response.out.write(pid)
             self.response.out.write(' is not available.')
         else:
-            ans = cgi.escape(self.request.get('ans'))
-            if hashlib.md5(ans).hexdigest() == problem.ans:
+            if ans == problem.ans:
                 self.response.out.write('Congrats!\n\n')
                 for x in problem.code:
                     self.response.out.write('--------------%s--------------'%x.name)
@@ -52,10 +54,11 @@ class Show(webapp.RequestHandler):
             else:
                 self.response.out.write('Wrong Answer')
 
+
 application = webapp.WSGIApplication(
         [('/', MainPage),
-            ('/show', Show)],
-        debug=True)
+            ('/show/.*', Show)],
+        debug=False)
 
 def main():
     run_wsgi_app(application)
